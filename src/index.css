@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream-100 font-sans text-espresso-800 leading-[1.5] antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display leading-[1.2] text-espresso-900;
+  }
+
+  /* Lets cards inside a grid shrink to the screen width instead of being pushed
+     wider than the phone (this was cutting off the right edge of the style cards) */
+  .grid > * {
+    min-width: 0;
+  }
+
+  ::selection {
+    @apply bg-bronze-300/50;
+  }
+}
+
+@layer components {
+  /* text-base (16px) stops iPhone Safari from zooming the page when a field is tapped */
+  .field {
+    @apply min-h-[3rem] w-full min-w-0 rounded-xl text-base border border-taupe-200 bg-white px-4 py-3 text-espresso-900 placeholder:text-taupe-400 shadow-sm transition duration-200 focus:border-bronze-500 focus:outline-none focus:ring-4 focus:ring-bronze-300/30;
+  }
+
+  .eyebrow {
+    @apply text-xs font-bold uppercase tracking-[0.2em] text-bronze-600;
+  }
+
+  .card-lift {
+    @apply transition duration-300 ease-out hover:-translate-y-1 hover:shadow-xl;
+  }
+}
+
+/* Device-safe sizing: each rule has a plain fallback first, then the modern unit */
+@layer utilities {
+  .min-h-screen-dvh { min-height: 100vh; min-height: 100dvh; }
+  .min-h-hero { min-height: 92vh; min-height: 92svh; }
+  .min-h-wizard { min-height: 70vh; min-height: 70dvh; }
+  .modal-panel {
+    max-height: 92vh;
+    max-height: 92dvh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .menu-panel {
+    max-height: calc(100vh - 5rem);
+    max-height: calc(100dvh - 5rem - env(safe-area-inset-top, 0px));
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+  .fab-safe { padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)); }
+  .footer-pad { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  @media (max-width: 767px) {
+    /* extra room at the bottom so the floating bar never covers the footer */
+    .footer-pad { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); }
+  }
+  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .hero-pad { padding-top: calc(8rem + env(safe-area-inset-top, 0px)); }
+  .sticky-bottom-safe { bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
+  .gutter {
+    padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1.25rem, env(safe-area-inset-right, 0px));
+  }
+  @media (min-width: 640px) {
+    .gutter {
+      padding-left: max(2rem, env(safe-area-inset-left, 0px));
+      padding-right: max(2rem, env(safe-area-inset-right, 0px));
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
