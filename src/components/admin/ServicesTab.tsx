@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from 'react';
+import { useConfirm, useToast } from '@/components/admin/AdminFeedback';
 import { ImagePlus, Pencil, Plus, Trash2 } from 'lucide-react';
 import { AddonEditor } from '@/components/admin/AddonEditor';
 import { Notice, PrimaryButton, SectionCard, errorMessage } from '@/components/admin/AdminPrimitives';
@@ -25,6 +26,8 @@ function priceLine(usd: number, ghs: number | null): string {
 }
 
 export function ServicesTab({ services, addons, onChanged }: ServicesTabProps) {
+  const confirm = useConfirm();
+  const notify = useToast();
   const [editing, setEditing] = useState<EditTarget | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -34,12 +37,19 @@ export function ServicesTab({ services, addons, onChanged }: ServicesTabProps) {
       kind === 'service'
         ? `Remove "${name}" from the site? Past bookings keep their record.`
         : `Remove the add-on "${name}"?`;
-    if (!window.confirm(message)) return;
+    const ok = await confirm({
+      title: kind === 'service' ? 'Remove this style?' : 'Remove this add-on?',
+      message,
+      confirmLabel: 'Remove',
+      danger: true,
+    });
+    if (!ok) return;
     setRemovingId(id);
     setActionError(null);
     try {
       if (kind === 'service') await deleteService(id);
       else await deleteAddon(id);
+      notify(kind === 'service' ? 'Style removed' : 'Add-on removed');
       onChanged();
     } catch (err) {
       setActionError(errorMessage(err, 'This could not be removed. Please try again.'));

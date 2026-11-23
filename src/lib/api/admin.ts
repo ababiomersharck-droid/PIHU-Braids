@@ -179,6 +179,17 @@ export async function updateBooking(
   check((await supabase.from('bookings').update(patch).eq('id', id)).error);
 }
 
+/** Upcoming requests still waiting for the owner to confirm. */
+export async function fetchPendingCount(): Promise<number> {
+  const { count, error } = await supabase
+    .from('bookings')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending')
+    .gt('start_at', new Date().toISOString());
+  check(error);
+  return count ?? 0;
+}
+
 export async function referenceImageUrl(path: string): Promise<string> {
   const { data, error } = await supabase.storage.from('booking-references').createSignedUrl(path, 600);
   check(error);

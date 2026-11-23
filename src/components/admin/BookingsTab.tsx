@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useConfirm, useToast } from '@/components/admin/AdminFeedback';
 import { Download, Loader2, Search } from 'lucide-react';
 import { BookingCalendar } from '@/components/admin/BookingCalendar';
 import { BookingRow, STATUS_META } from '@/components/admin/BookingRow';
@@ -15,9 +16,12 @@ const STATUS_FILTERS: StatusFilter[] = ['all', 'pending', 'confirmed', 'complete
 
 interface BookingsTabProps {
   timezone: string;
+  brandName: string;
 }
 
-export function BookingsTab({ timezone }: BookingsTabProps) {
+export function BookingsTab({ timezone, brandName }: BookingsTabProps) {
+  const confirm = useConfirm();
+  const notify = useToast();
   const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -81,6 +85,7 @@ export function BookingsTab({ timezone }: BookingsTabProps) {
     setActionError(null);
     try {
       await updateBooking(id, patch);
+      notify('Booking updated');
       await load();
     } catch (err) {
       setActionError(errorMessage(err, 'This booking could not be updated. Please try again.'));
@@ -89,9 +94,18 @@ export function BookingsTab({ timezone }: BookingsTabProps) {
     }
   };
 
-  const changeStatus = (booking: Booking, status: BookingStatus) => {
-    if (status === 'canceled' && !window.confirm(`Cancel ${booking.client_name}'s appointment?`)) return;
-    void mutate(booking.id, { status });
+  const changeStatus = async (booking: Booking, status: BookingStatus) => {
+    if (status === 'canceled') {
+      const ok = await confirm({
+        title: 'Cancel this appointment?',
+        message: `${booking.client_name}'s appointment will be marked as canceled and the time becomes available to other clients again.`,
+        confirmLabel: 'Cancel appointment',
+        cancelLabel: 'Keep it',
+        danger: true,
+      });
+      if (!ok) return;
+    }
+    await mutate(booking.id, { status });
   };
 
   const openPhoto = async (booking: Booking) => {
@@ -121,8 +135,9 @@ export function BookingsTab({ timezone }: BookingsTabProps) {
             key={booking.id}
             booking={booking}
             timezone={timezone}
+            brandName={brandName}
             busy={busyId === booking.id}
-            onStatus={(status) => changeStatus(booking, status)}
+            onStatus={(status) => void changeStatus(booking, status)}
             onDeposit={(paid) => void mutate(booking.id, { deposit_paid: paid })}
             onViewPhoto={() => void openPhoto(booking)}
           />

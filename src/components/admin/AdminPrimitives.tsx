@@ -115,6 +115,11 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
   );
 }
 
+/** A soft pulsing placeholder shown while data loads. */
+export function Skeleton({ className = '' }: { className?: string }) {
+  return <div aria-hidden="true" className={`animate-pulse rounded-2xl bg-taupe-200/70 ${className}`} />;
+}
+
 export function parseNumber(value: string): number {
   return value.trim() === '' ? Number.NaN : Number(value);
 }

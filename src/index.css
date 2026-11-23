@@ -71,6 +71,16 @@
   .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .hero-pad { padding-top: calc(8rem + env(safe-area-inset-top, 0px)); }
   .sticky-bottom-safe { bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
+  /* admin: the phone bottom bar takes about 4.5rem, so floating bars and toasts sit above it */
+  .toast-zone { padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px)); }
+  .admin-main-pad { padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)); }
+  @media (max-width: 1023px) {
+    .sticky-bottom-safe { bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }
+  }
+  @media (min-width: 1024px) {
+    .toast-zone { padding-bottom: 2rem; }
+    .admin-main-pad { padding-bottom: 3.5rem; }
+  }
   .gutter {
     padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
     padding-right: max(1.25rem, env(safe-area-inset-right, 0px));

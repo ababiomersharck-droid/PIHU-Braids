@@ -15,6 +15,14 @@ type Gate =
 export function AdminPage() {
   const [gate, setGate] = useState<Gate>({ kind: 'loading' });
 
+  useEffect(() => {
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, nofollow';
+    document.head.appendChild(meta);
+    return () => meta.remove();
+  }, []);
+
   const refresh = useCallback(async () => {
     try {
       const status = await fetchOwnerStatus();

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useConfirm, useToast } from '@/components/admin/AdminFeedback';
 import { CalendarOff, Plus, Trash2 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Notice, PrimaryButton, SectionCard, SecondaryButton, TextField, errorMessage } from '@/components/admin/AdminPrimitives';
@@ -56,6 +57,8 @@ function describeBlock(block: BlackoutDate): string {
 }
 
 export function BlackoutPanel({ blackouts, timezone, onChanged }: BlackoutPanelProps) {
+  const confirm = useConfirm();
+  const notify = useToast();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<BlackoutDraft>(() => newDraft(timezone));
   const [busy, setBusy] = useState(false);
@@ -89,11 +92,18 @@ export function BlackoutPanel({ blackouts, timezone, onChanged }: BlackoutPanelP
   };
 
   const remove = async (block: BlackoutDate) => {
-    if (!window.confirm(`Remove "${block.label}"? Clients will be able to book these times again.`)) return;
+    const ok = await confirm({
+      title: 'Remove this time off?',
+      message: `"${block.label}" will be removed and clients will be able to book these times again.`,
+      confirmLabel: 'Remove',
+      danger: true,
+    });
+    if (!ok) return;
     setRemovingId(block.id);
     setListError(null);
     try {
       await deleteBlackout(block.id);
+      notify('Time off removed');
       onChanged();
     } catch (err) {
       setListError(errorMessage(err, 'This block could not be removed.'));

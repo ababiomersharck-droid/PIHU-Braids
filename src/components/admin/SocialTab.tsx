@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { useConfirm, useToast } from '@/components/admin/AdminFeedback';
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { SocialIcon } from '@/components/ui/SocialIcon';
@@ -15,6 +16,8 @@ interface SocialTabProps {
 }
 
 export function SocialTab({ socials, ready, onChanged }: SocialTabProps) {
+  const confirm = useConfirm();
+  const notify = useToast();
   const [editing, setEditing] = useState<SocialLink | 'new' | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,11 +25,18 @@ export function SocialTab({ socials, ready, onChanged }: SocialTabProps) {
   const nextPosition = socials.reduce((max, s) => Math.max(max, s.position), 0) + 1;
 
   const remove = async (link: SocialLink) => {
-    if (!window.confirm(`Remove ${socialName(link)} ${socialHandleText(link)} from your website?`.replace('  ', ' '))) return;
+    const ok = await confirm({
+      title: 'Remove this account?',
+      message: `${[socialName(link), socialHandleText(link)].filter(Boolean).join(' ')} will no longer appear on your website.`,
+      confirmLabel: 'Remove',
+      danger: true,
+    });
+    if (!ok) return;
     setBusyId(link.id);
     setError(null);
     try {
       await deleteSocial(link.id);
+      notify('Account removed');
       onChanged();
     } catch (err) {
       setError(errorMessage(err, 'This could not be removed. Please try again.'));

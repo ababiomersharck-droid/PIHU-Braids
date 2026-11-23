@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { useConfirm, useToast } from '@/components/admin/AdminFeedback';
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Notice, PrimaryButton, SectionCard, errorMessage } from '@/components/admin/AdminPrimitives';
@@ -13,6 +14,8 @@ interface PoliciesTabProps {
 }
 
 export function PoliciesTab({ policies, ready, onChanged }: PoliciesTabProps) {
+  const confirm = useConfirm();
+  const notify = useToast();
   const [editing, setEditing] = useState<Policy | 'new' | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -20,11 +23,18 @@ export function PoliciesTab({ policies, ready, onChanged }: PoliciesTabProps) {
   const nextPosition = policies.reduce((max, p) => Math.max(max, p.position), 0) + 1;
 
   const remove = async (policy: Policy) => {
-    if (!window.confirm(`Delete "${policy.question}"? This cannot be undone. You can hide it instead.`)) return;
+    const ok = await confirm({
+      title: 'Delete this policy?',
+      message: `"${policy.question}" will be removed for good. If you only want to stop showing it, hide it instead.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    });
+    if (!ok) return;
     setBusyId(policy.id);
     setError(null);
     try {
       await deletePolicy(policy.id);
+      notify('Policy deleted');
       onChanged();
     } catch (err) {
       setError(errorMessage(err, 'This could not be deleted. Please try again.'));

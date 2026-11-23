@@ -1,4 +1,5 @@
-import { Camera, Check, CreditCard } from 'lucide-react';
+import { Camera, Check, CreditCard, MessageCircle } from 'lucide-react';
+import { clientMessage, whatsappUrl } from '@/lib/whatsapp';
 import { formatDateTime, formatMoney } from '@/lib/format';
 import type { Booking, BookingStatus } from '@/lib/types';
 
@@ -14,13 +15,15 @@ const STATUS_ORDER: BookingStatus[] = ['pending', 'confirmed', 'completed', 'can
 interface BookingRowProps {
   booking: Booking;
   timezone: string;
+  brandName: string;
   busy: boolean;
   onStatus: (status: BookingStatus) => void;
   onDeposit: (paid: boolean) => void;
   onViewPhoto: () => void;
 }
 
-export function BookingRow({ booking, timezone, busy, onStatus, onDeposit, onViewPhoto }: BookingRowProps) {
+export function BookingRow({ booking, timezone, brandName, busy, onStatus, onDeposit, onViewPhoto }: BookingRowProps) {
+  const whatsapp = whatsappUrl(booking.client_phone, clientMessage(booking, brandName, timezone));
   const meta = STATUS_META[booking.status];
   const currency = booking.display_currency;
   const total = currency === 'USD' ? booking.total_usd : booking.total_ghs;
@@ -68,6 +71,17 @@ export function BookingRow({ booking, timezone, busy, onStatus, onDeposit, onVie
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-taupe-100 pt-4">
+        {whatsapp && (
+          <a
+            href={whatsapp}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex min-h-[2.5rem] items-center gap-1.5 rounded-full bg-[#25D366]/10 px-3.5 text-xs font-semibold text-[#128C7E] transition hover:bg-[#25D366]/20"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            Message on WhatsApp
+          </a>
+        )}
         {STATUS_ORDER.filter((status) => status !== booking.status).map((status) => (
           <button
             key={status}
