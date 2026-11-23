@@ -1,21 +1,24 @@
-import { Lock, MapPin, MessageCircle, Phone, AtSign } from 'lucide-react';
+import { Lock, MapPin, MessageCircle, Phone } from 'lucide-react';
+import { SocialIcon } from '@/components/ui/SocialIcon';
+import { socialHandleText, socialName, socialUrl } from '@/lib/social';
 import { formatTimeOfDay } from '@/lib/format';
-import type { SiteSettings, WorkingHour } from '@/lib/types';
+import { DEFAULT_HOURS_HEADING, DEFAULT_VISIT_HEADING } from '@/lib/defaults';
+import type { SiteSettings, SocialLink, WorkingHour } from '@/lib/types';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 interface SiteFooterProps {
   settings: SiteSettings;
   hours: WorkingHour[];
+  socials?: SocialLink[];
   onOwnerLogin: () => void;
 }
 
-export function SiteFooter({ settings, hours, onOwnerLogin }: SiteFooterProps) {
+export function SiteFooter({ settings, hours, socials = [], onOwnerLogin }: SiteFooterProps) {
   const orderedHours = [1, 2, 3, 4, 5, 6, 0]
     .map((day) => hours.find((h) => h.weekday === day))
     .filter((h): h is WorkingHour => Boolean(h));
   const whatsappDigits = settings.whatsapp_number.replace(/\D/g, '');
-  const handle = settings.instagram_handle.replace(/^@/, '');
 
   return (
     <footer id="visit" className="footer-pad scroll-mt-24 bg-espresso-900 text-cream-200">
@@ -34,7 +37,7 @@ export function SiteFooter({ settings, hours, onOwnerLogin }: SiteFooterProps) {
         </div>
 
         <div className="space-y-5">
-          <h3 className="font-display text-2xl text-white">Visit the studio</h3>
+          <h3 className="font-display text-2xl text-white">{settings.visit_heading || DEFAULT_VISIT_HEADING}</h3>
           <ul className="space-y-4 text-sm">
             {settings.address && (
               <li className="flex gap-3">
@@ -63,24 +66,25 @@ export function SiteFooter({ settings, hours, onOwnerLogin }: SiteFooterProps) {
                 </a>
               </li>
             )}
-            {handle && (
-              <li className="flex gap-3">
-                <AtSign className="mt-0.5 h-4 w-4 shrink-0 text-bronze-300" />
-                <a
-                  href={`https://instagram.com/${handle}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="transition hover:text-white"
-                >
-                  @{handle}
-                </a>
-              </li>
-            )}
+            {socials.map((link) => {
+              const href = socialUrl(link);
+              if (!href) return null;
+              const handleText = socialHandleText(link);
+              return (
+                <li key={link.id} className="flex gap-3">
+                  <SocialIcon platform={link.platform} className="mt-0.5 h-4 w-4 shrink-0 text-bronze-300" />
+                  <a href={href} target="_blank" rel="noreferrer noopener" className="min-w-0 break-words transition hover:text-white">
+                    {socialName(link)}
+                    {handleText && <span className="text-cream-300/70"> {handleText}</span>}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </div>
 
         <div className="space-y-5">
-          <h3 className="font-display text-2xl text-white">Studio hours</h3>
+          <h3 className="font-display text-2xl text-white">{settings.hours_heading || DEFAULT_HOURS_HEADING}</h3>
           <ul className="space-y-2.5 text-sm">
             {orderedHours.map((h) => (
               <li key={h.weekday} className="flex justify-between gap-4 border-b border-white/10 pb-2.5">

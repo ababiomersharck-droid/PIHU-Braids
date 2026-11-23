@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { CurrencyToggle } from '@/components/site/CurrencyToggle';
 import { useSite } from '@/context/SiteContext';
+import { DEFAULT_BOOK_BUTTON_LABEL } from '@/lib/defaults';
 import type { SiteSettings } from '@/lib/types';
 
 interface SiteHeaderProps {
   settings: SiteSettings;
   onBook: () => void;
+  /** hide the Policies link when the owner has removed every policy */
+  showPolicies?: boolean;
 }
 
 const NAV_LINKS = [
@@ -15,7 +18,8 @@ const NAV_LINKS = [
   { href: '#visit', label: 'Visit' },
 ];
 
-export function SiteHeader({ settings, onBook }: SiteHeaderProps) {
+export function SiteHeader({ settings, onBook, showPolicies = true }: SiteHeaderProps) {
+  const links = NAV_LINKS.filter((link) => showPolicies || link.href !== '#policies');
   const { currency, setCurrency } = useSite();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -54,7 +58,7 @@ export function SiteHeader({ settings, onBook }: SiteHeaderProps) {
         </a>
 
         <nav className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map((link) => (
+          {links.map((link) => (
             <a
               key={link.href}
               href={link.href}
@@ -74,7 +78,7 @@ export function SiteHeader({ settings, onBook }: SiteHeaderProps) {
             onClick={onBook}
             className="hidden rounded-full bg-bronze-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-bronze-900/20 transition duration-300 hover:-translate-y-0.5 hover:bg-bronze-600 sm:inline-flex"
           >
-            Book Appointment
+            {settings.book_button_label || DEFAULT_BOOK_BUTTON_LABEL}
           </button>
           <button
             type="button"
@@ -91,7 +95,7 @@ export function SiteHeader({ settings, onBook }: SiteHeaderProps) {
       {menuOpen && (
         <div className="menu-panel animate-fade-in overflow-y-auto border-t border-taupe-200 bg-cream-50 px-5 pt-4 md:hidden">
           <nav className="flex flex-col gap-1">
-            {NAV_LINKS.map((link) => (
+            {links.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
@@ -112,7 +116,7 @@ export function SiteHeader({ settings, onBook }: SiteHeaderProps) {
               }}
               className="rounded-full bg-espresso-800 px-6 py-3.5 text-sm font-bold text-cream-50 transition hover:bg-espresso-900"
             >
-              Book Appointment
+              {settings.book_button_label || DEFAULT_BOOK_BUTTON_LABEL}
             </button>
           </div>
         </div>

@@ -5,7 +5,9 @@ import type {
   BlackoutDate,
   Booking,
   BookingStatus,
+  Policy,
   Service,
+  SocialLink,
   SiteSettings,
   WorkingHour,
 } from '@/lib/types';
@@ -16,6 +18,12 @@ export interface AdminData {
   addons: Addon[];
   hours: WorkingHour[];
   blackouts: BlackoutDate[];
+  policies: Policy[];
+  /** false when the policies table has not been created yet */
+  policiesReady: boolean;
+  socials: SocialLink[];
+  /** false when the social_links table has not been created yet */
+  socialsReady: boolean;
 }
 
 function check(error: { message: string } | null): void {
@@ -51,12 +59,14 @@ export async function fetchOwnerStatus(): Promise<{ signedIn: boolean; isOwner: 
 }
 
 export async function fetchAdminData(): Promise<AdminData> {
-  const [settings, services, addons, hours, blackouts] = await Promise.all([
+  const [settings, services, addons, hours, blackouts, policies, socials] = await Promise.all([
     supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
     supabase.from('services').select('*').order('position'),
     supabase.from('addons').select('*').order('position'),
     supabase.from('working_hours').select('*').order('weekday'),
     supabase.from('blackout_dates').select('*').order('start_date'),
+    supabase.from('policies').select('*').order('position'),
+    supabase.from('social_links').select('*').order('position'),
   ]);
   return {
     settings: unwrap(settings as QueryResult<SiteSettings>),
@@ -64,6 +74,10 @@ export async function fetchAdminData(): Promise<AdminData> {
     addons: unwrap(addons as QueryResult<Addon[]>),
     hours: unwrap(hours as QueryResult<WorkingHour[]>),
     blackouts: unwrap(blackouts as QueryResult<BlackoutDate[]>),
+    policies: policies.error ? [] : ((policies.data ?? []) as Policy[]),
+    policiesReady: !policies.error,
+    socials: socials.error ? [] : ((socials.data ?? []) as SocialLink[]),
+    socialsReady: !socials.error,
   };
 }
 
@@ -99,6 +113,46 @@ export async function deleteService(id: string): Promise<void> {
 
 export async function deleteAddon(id: string): Promise<void> {
   check((await supabase.from('addons').delete().eq('id', id)).error);
+}
+
+export async function savePolicy(input: Omit<Policy, 'id'>, id: string | null): Promise<void> {
+  const request = id ? supabase.from('policies').update(input).eq('id', id) : supabase.from('policies').insert(input);
+  check((await request).error);
+}
+
+export async function deletePolicy(id: string): Promise<void> {
+  check((await supabase.from('policies').delete().eq('id', id)).error);
+}
+
+/** Saves a new order: item 1 gets position 1, item 2 gets position 2, and so on. */
+export async function reorderPolicies(ordered: Policy[]): Promise<void> {
+  const results = await Promise.all(
+    ordered.map((policy, index) =>
+      policy.position === index + 1 ? null : supabase.from('policies').update({ position: index + 1 }).eq('id', policy.id),
+    ),
+  );
+  for (const result of results) if (result) check(result.error);
+}
+
+export async function saveSocial(input: Omit<SocialLink, 'id'>, id: string | null): Promise<void> {
+  const request = id
+    ? supabase.from('social_links').update(input).eq('id', id)
+    : supabase.from('social_links').insert(input);
+  check((await request).error);
+}
+
+export async function deleteSocial(id: string): Promise<void> {
+  check((await supabase.from('social_links').delete().eq('id', id)).error);
+}
+
+/** Saves a new order: item 1 gets position 1, item 2 gets position 2, and so on. */
+export async function reorderSocials(ordered: SocialLink[]): Promise<void> {
+  const results = await Promise.all(
+    ordered.map((link, index) =>
+      link.position === index + 1 ? null : supabase.from('social_links').update({ position: index + 1 }).eq('id', link.id),
+    ),
+  );
+  for (const result of results) if (result) check(result.error);
 }
 
 export async function saveHours(rows: WorkingHour[]): Promise<void> {

@@ -1,6 +1,7 @@
 import { ArrowRight, Search, Sparkles } from 'lucide-react';
 import { CurrencyToggle } from '@/components/site/CurrencyToggle';
 import { useSite } from '@/context/SiteContext';
+import { DEFAULT_BOOK_BUTTON_LABEL, DEFAULT_EXPLORE_BUTTON_LABEL } from '@/lib/defaults';
 import type { SiteSettings } from '@/lib/types';
 
 interface HeroProps {
@@ -47,14 +48,14 @@ export function Hero({ settings, search, onSearchChange, onBook }: HeroProps) {
                 onClick={onBook}
                 className="group inline-flex items-center justify-center gap-2 rounded-full bg-bronze-500 px-7 py-4 text-sm font-bold text-white shadow-xl shadow-black/30 transition duration-300 hover:-translate-y-0.5 hover:bg-bronze-400"
               >
-                Book Appointment
+                {settings.book_button_label || DEFAULT_BOOK_BUTTON_LABEL}
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
               </button>
               <a
                 href="#catalog"
                 className="inline-flex items-center justify-center rounded-full border border-white/40 px-7 py-4 text-sm font-bold text-white transition hover:border-white hover:bg-white/10"
               >
-                Explore Styles
+                {settings.explore_button_label || DEFAULT_EXPLORE_BUTTON_LABEL}
               </a>
             </div>
 

@@ -53,7 +53,7 @@ export function SitePage() {
 
   return (
     <div className="min-h-screen-dvh bg-cream-100 animate-fade-in">
-      <SiteHeader settings={content.settings} onBook={() => openBooking(null)} />
+      <SiteHeader settings={content.settings} onBook={() => openBooking(null)} showPolicies={content.policies.length > 0} />
       <main>
         <Hero
           settings={content.settings}
@@ -62,11 +62,12 @@ export function SitePage() {
           onBook={() => openBooking(null)}
         />
         <CatalogSection services={content.services} search={search} onSelect={setSelectedService} />
-        <PoliciesSection />
+        <PoliciesSection settings={content.settings} policies={content.policies} />
       </main>
       <SiteFooter
         settings={content.settings}
         hours={content.hours}
+        socials={content.socials}
         onOwnerLogin={() => window.location.assign('/admin')}
       />
 

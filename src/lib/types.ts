@@ -16,6 +16,18 @@ export interface SiteSettings {
   address: string;
   footer_note: string;
   payment_instructions: string;
+  catalog_heading: string;
+  policies_heading: string;
+  policies_intro: string;
+  booking_terms: string;
+  book_button_label: string;
+  explore_button_label: string;
+  visit_heading: string;
+  hours_heading: string;
+  booking_window_days: number;
+  min_notice_hours: number;
+  buffer_minutes: number;
+  slot_interval_minutes: number;
   timezone: string;
   default_currency: Currency;
   ghs_per_usd: number;
@@ -63,12 +75,34 @@ export interface BlackoutDate {
   end_time: string | null;
 }
 
+export interface Policy {
+  id: string;
+  question: string;
+  answer: string;
+  is_active: boolean;
+  position: number;
+}
+
+export type SocialPlatform = 'instagram' | 'tiktok' | 'facebook' | 'youtube' | 'x' | 'snapchat' | 'pinterest' | 'other';
+
+export interface SocialLink {
+  id: string;
+  platform: SocialPlatform;
+  /** a handle such as "pihubraids" or a full link starting with https:// */
+  value: string;
+  /** display name, used when the platform is "other" */
+  label: string;
+  position: number;
+}
+
 export interface SiteContent {
   settings: SiteSettings;
   services: Service[];
   addons: Addon[];
   hours: WorkingHour[];
   blackouts: BlackoutDate[];
+  policies: Policy[];
+  socials: SocialLink[];
 }
 
 export interface Booking {

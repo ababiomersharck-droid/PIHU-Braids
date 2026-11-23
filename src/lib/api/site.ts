@@ -1,10 +1,13 @@
 import { supabase } from '@/lib/supabase';
+import { DEFAULT_POLICIES } from '@/lib/defaults';
 import type {
   Addon,
   BlackoutDate,
   BookingReceipt,
   Currency,
+  Policy,
   Service,
+  SocialLink,
   SiteContent,
   SiteSettings,
   WorkingHour,
@@ -22,20 +25,32 @@ export function unwrap<T>(result: QueryResult<T>): T {
 }
 
 export async function fetchSiteContent(): Promise<SiteContent> {
-  const [settings, services, addons, hours, blackouts] = await Promise.all([
+  const [settings, services, addons, hours, blackouts, policies, socials] = await Promise.all([
     supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
     supabase.from('services').select('*').order('position'),
     supabase.from('addons').select('*').order('position'),
     supabase.from('working_hours').select('*').order('weekday'),
     supabase.from('blackout_dates').select('*').order('start_date'),
+    supabase.from('policies').select('*').order('position'),
+    supabase.from('social_links').select('*').order('position'),
   ]);
 
+  const settingsRow = unwrap(settings as QueryResult<SiteSettings>);
+  // Before the social_links table exists, keep showing the old Instagram handle.
+  const legacyHandle = (settingsRow.instagram_handle ?? '').trim().replace(/^@/, '');
+  const legacySocials: SocialLink[] = /^[A-Za-z0-9._-]{1,60}$/.test(legacyHandle)
+    ? [{ id: 'legacy-instagram', platform: 'instagram', value: legacyHandle, label: '', position: 1 }]
+    : [];
+
   return {
-    settings: unwrap(settings as QueryResult<SiteSettings>),
+    settings: settingsRow,
     services: (unwrap(services as QueryResult<Service[]>)).filter((s) => s.is_active),
     addons: (unwrap(addons as QueryResult<Addon[]>)).filter((a) => a.is_active),
     hours: unwrap(hours as QueryResult<WorkingHour[]>),
     blackouts: unwrap(blackouts as QueryResult<BlackoutDate[]>),
+    // If the policies table does not exist yet, fall back to the built-in wording instead of failing.
+    policies: policies.error ? DEFAULT_POLICIES : ((policies.data ?? []) as Policy[]).filter((p) => p.is_active),
+    socials: socials.error ? legacySocials : ((socials.data ?? []) as SocialLink[]),
   };
 }
 

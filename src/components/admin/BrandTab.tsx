@@ -5,7 +5,14 @@ import { saveSettings } from '@/lib/api/admin';
 import { formatMoney } from '@/lib/format';
 import type { Currency, SiteSettings } from '@/lib/types';
 
-type BrandDraft = Omit<SiteSettings, 'id' | 'timezone' | 'ghs_per_usd'> & { ghs_per_usd: string };
+type NumericRule = 'booking_window_days' | 'min_notice_hours' | 'buffer_minutes' | 'slot_interval_minutes';
+type BrandDraft = Omit<SiteSettings, 'id' | 'timezone' | 'ghs_per_usd' | NumericRule> & {
+  ghs_per_usd: string;
+  booking_window_days: string;
+  min_notice_hours: string;
+  buffer_minutes: string;
+  slot_interval_minutes: string;
+};
 
 interface BrandTabProps {
   settings: SiteSettings;
@@ -31,6 +38,18 @@ function toDraft(settings: SiteSettings): BrandDraft {
     address: settings.address,
     footer_note: settings.footer_note,
     payment_instructions: settings.payment_instructions,
+    catalog_heading: settings.catalog_heading ?? '',
+    policies_heading: settings.policies_heading ?? '',
+    policies_intro: settings.policies_intro ?? '',
+    booking_terms: settings.booking_terms ?? '',
+    book_button_label: settings.book_button_label ?? '',
+    explore_button_label: settings.explore_button_label ?? '',
+    visit_heading: settings.visit_heading ?? '',
+    hours_heading: settings.hours_heading ?? '',
+    booking_window_days: String(settings.booking_window_days ?? 21),
+    min_notice_hours: String(settings.min_notice_hours ?? 0),
+    buffer_minutes: String(settings.buffer_minutes ?? 0),
+    slot_interval_minutes: String(settings.slot_interval_minutes ?? 30),
     default_currency: settings.default_currency,
     ghs_per_usd: String(settings.ghs_per_usd),
   };
@@ -41,6 +60,22 @@ function validate(draft: BrandDraft): { patch: Omit<SiteSettings, 'id' | 'timezo
   if (!draft.brand_name.trim()) return { error: 'Your brand name cannot be empty.' };
   if (!draft.hero_headline.trim()) return { error: 'The homepage headline cannot be empty.' };
   if (!Number.isFinite(rate) || rate <= 0) return { error: 'Enter a cedi exchange rate greater than zero.' };
+  const windowDays = parseNumber(draft.booking_window_days);
+  const notice = parseNumber(draft.min_notice_hours);
+  const buffer = parseNumber(draft.buffer_minutes);
+  const interval = parseNumber(draft.slot_interval_minutes);
+  if (!Number.isInteger(windowDays) || windowDays < 1 || windowDays > 365) {
+    return { error: 'Booking window must be a whole number of days from 1 to 365.' };
+  }
+  if (!Number.isInteger(notice) || notice < 0 || notice > 720) {
+    return { error: 'Minimum notice must be a whole number of hours from 0 to 720.' };
+  }
+  if (!Number.isInteger(buffer) || buffer < 0 || buffer > 180) {
+    return { error: 'Time between appointments must be a whole number of minutes from 0 to 180.' };
+  }
+  if (!Number.isInteger(interval) || interval < 15 || interval > 240 || interval % 5 !== 0) {
+    return { error: 'Start times must be spaced 15 to 240 minutes apart, in steps of 5 (for example 30 or 60).' };
+  }
   return {
     patch: {
       brand_name: draft.brand_name.trim(),
@@ -55,6 +90,18 @@ function validate(draft: BrandDraft): { patch: Omit<SiteSettings, 'id' | 'timezo
       address: draft.address.trim(),
       footer_note: draft.footer_note.trim(),
       payment_instructions: draft.payment_instructions.trim(),
+      catalog_heading: draft.catalog_heading.trim(),
+      policies_heading: draft.policies_heading.trim(),
+      policies_intro: draft.policies_intro.trim(),
+      booking_terms: draft.booking_terms.trim(),
+      book_button_label: draft.book_button_label.trim(),
+      explore_button_label: draft.explore_button_label.trim(),
+      visit_heading: draft.visit_heading.trim(),
+      hours_heading: draft.hours_heading.trim(),
+      booking_window_days: windowDays,
+      min_notice_hours: notice,
+      buffer_minutes: buffer,
+      slot_interval_minutes: interval,
       default_currency: draft.default_currency,
       ghs_per_usd: rate,
     },
@@ -183,6 +230,80 @@ export function BrandTab({ settings, onSaved }: BrandTabProps) {
               hint="Shown to clients after they book, for the deposit."
             />
           </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Booking rules"
+        description="Control when clients can book. These rules apply to the calendar and are also checked again when a booking is saved."
+      >
+        <div className="grid gap-6 md:grid-cols-2">
+          <TextField
+            label="How far ahead can clients book (days)"
+            type="number"
+            min="1"
+            max="365"
+            step="1"
+            value={draft.booking_window_days}
+            onChange={(v) => update('booking_window_days', v)}
+            hint="For example 30 shows the next 30 days."
+          />
+          <TextField
+            label="Minimum notice (hours)"
+            type="number"
+            min="0"
+            max="720"
+            step="1"
+            value={draft.min_notice_hours}
+            onChange={(v) => update('min_notice_hours', v)}
+            hint="0 allows booking right up to the start time. 24 means at least one day ahead."
+          />
+          <TextField
+            label="Time kept free between appointments (minutes)"
+            type="number"
+            min="0"
+            max="180"
+            step="5"
+            value={draft.buffer_minutes}
+            onChange={(v) => update('buffer_minutes', v)}
+            hint="A rest or clean-up gap after each appointment. 0 means none."
+          />
+          <TextField
+            label="Start times offered every (minutes)"
+            type="number"
+            min="15"
+            max="240"
+            step="5"
+            value={draft.slot_interval_minutes}
+            onChange={(v) => update('slot_interval_minutes', v)}
+            hint="30 offers 9:00, 9:30, 10:00. 60 offers 9:00, 10:00, 11:00."
+          />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Website wording" description="Text on the public site that you can change. Leave a box empty to use the standard wording.">
+        <div className="grid gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <TextField label="Main booking button" value={draft.book_button_label} onChange={(v) => update('book_button_label', v)} />
+            <TextField label="Second button on the first screen" value={draft.explore_button_label} onChange={(v) => update('explore_button_label', v)} />
+            <TextField label="Footer heading for location and contact" value={draft.visit_heading} onChange={(v) => update('visit_heading', v)} />
+            <TextField label="Footer heading for opening hours" value={draft.hours_heading} onChange={(v) => update('hours_heading', v)} />
+          </div>
+          <TextField label="Styles section heading" value={draft.catalog_heading} onChange={(v) => update('catalog_heading', v)} />
+          <TextField label="Policies section heading" value={draft.policies_heading} onChange={(v) => update('policies_heading', v)} />
+          <TextField
+            label="Policies section introduction"
+            multiline
+            value={draft.policies_intro}
+            onChange={(v) => update('policies_intro', v)}
+          />
+          <TextField
+            label="Booking agreement (tick box)"
+            multiline
+            value={draft.booking_terms}
+            onChange={(v) => update('booking_terms', v)}
+            hint="Shown as a tick box on the last booking step. Clients must tick it to book. Keep it in line with your policies."
+          />
         </div>
       </SectionCard>
 

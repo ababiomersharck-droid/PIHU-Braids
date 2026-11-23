@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
-import { CalendarDays, Loader2, LogOut, Scissors, Settings2, Sparkles, Store } from 'lucide-react';
+import { CalendarDays, Loader2, LogOut, Scissors, ScrollText, Settings2, Share2, Sparkles, Store } from 'lucide-react';
 import { BrandTab } from '@/components/admin/BrandTab';
 import { HoursTab } from '@/components/admin/HoursTab';
 import { BookingsTab } from '@/components/admin/BookingsTab';
 import { ServicesTab } from '@/components/admin/ServicesTab';
+import { PoliciesTab } from '@/components/admin/PoliciesTab';
+import { SocialTab } from '@/components/admin/SocialTab';
 import { Notice, errorMessage } from '@/components/admin/AdminPrimitives';
 import { fetchAdminData, signOutOwner, type AdminData } from '@/lib/api/admin';
 
-type TabId = 'brand' | 'hours' | 'bookings' | 'services';
+type TabId = 'brand' | 'hours' | 'bookings' | 'services' | 'policies' | 'social';
 
 const TABS: Array<{ id: TabId; label: string; icon: typeof Store }> = [
   { id: 'brand', label: 'Brand & Business', icon: Store },
   { id: 'hours', label: 'Hours & Calendar', icon: CalendarDays },
   { id: 'bookings', label: 'Bookings', icon: Settings2 },
   { id: 'services', label: 'Services', icon: Sparkles },
+  { id: 'policies', label: 'Policies & FAQs', icon: ScrollText },
+  { id: 'social', label: 'Social media', icon: Share2 },
 ];
 
 export function AdminShell() {
@@ -100,6 +104,8 @@ export function AdminShell() {
           <div key={tab} className="animate-fade-up">
             {tab === 'brand' && <BrandTab settings={data.settings} onSaved={reload} />}
             {tab === 'hours' && <HoursTab hours={data.hours} blackouts={data.blackouts} timezone={data.settings.timezone} onChanged={reload} />}
+            {tab === 'social' && <SocialTab socials={data.socials} ready={data.socialsReady} onChanged={reload} />}
+            {tab === 'policies' && <PoliciesTab policies={data.policies} ready={data.policiesReady} onChanged={reload} />}
             {tab === 'services' && <ServicesTab services={data.services} addons={data.addons} onChanged={reload} />}
           </div>
         )}
