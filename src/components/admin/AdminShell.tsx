@@ -138,19 +138,19 @@ function AdminLayout() {
     <div className="min-h-screen-dvh bg-cream-100 lg:pl-72">
       {/* Laptop and tablet: dark sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col bg-espresso-900 text-cream-200 lg:flex">
-        <div className="flex items-center gap-3 px-6 pb-4 pt-8">
-          <img src="/logo-mark.png" alt="" width={44} height={44} className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-bronze-300/50" />
+        <div className="flex items-center gap-3 px-6 pb-2 pt-6">
+          <img src="/logo-mark.png" alt="" width={44} height={44} className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-bronze-300/50" />
           <div className="min-w-0">
             <p className="truncate font-display text-2xl leading-tight text-white">{brand}</p>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-bronze-300">Owner dashboard</p>
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-4 pb-6" aria-label="Admin sections">
+        <nav className="flex-1 overflow-y-auto px-3 pb-3" aria-label="Admin sections">
           {GROUPS.map((group) => (
-            <div key={group.label} className="mt-6">
-              <p className="px-3 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-taupe-400">{group.label}</p>
-              <ul className="space-y-1">
+            <div key={group.label} className="mt-4">
+              <p className="px-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-taupe-400">{group.label}</p>
+              <ul className="space-y-0.5">
                 {group.ids.map((id) => {
                   const { label, icon: Icon } = NAV[id];
                   const active = tab === id;
@@ -160,7 +160,7 @@ function AdminLayout() {
                         type="button"
                         onClick={() => go(id)}
                         aria-current={active ? 'page' : undefined}
-                        className={`relative flex min-h-[2.75rem] w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold transition duration-200 ${
+                        className={`relative flex min-h-[2.5rem] w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold transition duration-200 ${
                           active ? 'bg-white/10 text-white' : 'text-cream-300/80 hover:bg-white/5 hover:text-white'
                         }`}
                       >
@@ -177,12 +177,12 @@ function AdminLayout() {
           ))}
         </nav>
 
-        <div className="space-y-1 border-t border-white/10 p-4">
+        <div className="space-y-0.5 border-t border-white/10 p-3">
           <a
             href="/"
             target="_blank"
             rel="noreferrer noopener"
-            className="flex min-h-[2.75rem] items-center gap-3 rounded-xl px-3 text-sm font-semibold text-cream-300/80 transition hover:bg-white/5 hover:text-white"
+            className="flex min-h-[2.5rem] items-center gap-3 rounded-xl px-3 text-sm font-semibold text-cream-300/80 transition hover:bg-white/5 hover:text-white"
           >
             <ExternalLink className="h-[18px] w-[18px] text-bronze-300" aria-hidden="true" />
             View your website
@@ -190,7 +190,7 @@ function AdminLayout() {
           <button
             type="button"
             onClick={signOut}
-            className="flex min-h-[2.75rem] w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold text-cream-300/80 transition hover:bg-white/5 hover:text-white"
+            className="flex min-h-[2.5rem] w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold text-cream-300/80 transition hover:bg-white/5 hover:text-white"
           >
             <LogOut className="h-[18px] w-[18px] text-bronze-300" aria-hidden="true" />
             Sign out
